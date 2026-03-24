@@ -12,8 +12,7 @@ examples/example_2/all_tests.out
 examples/example_4/builddir
 *.sublime-project
 *.sublime-workspace
-*.cmake
 Makefile
 CMakeFiles
 CMakeCache.txt
-!unityConfig.cmake
+unityConfig.cmake

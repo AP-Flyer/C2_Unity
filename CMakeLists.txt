@@ -14,6 +14,9 @@ cmake_minimum_required(VERSION 3.12)
 # Read src/unity.h file and get project version from it
 set(UNITY_HEADER "src/unity.h")
 
+add_compile_definitions(UNITY_INCLUDE_DOUBLE)
+set(UNITY_PATH ${unity_SOURCE_DIR})
+
 file(STRINGS "${UNITY_HEADER}" UNITY_HEADER_CONTENT 
     REGEX "^#define UNITY_VERSION_(MAJOR|MINOR|BUILD) +[0-9]+$"
 )
@@ -155,16 +158,32 @@ target_compile_options(${PROJECT_NAME}
         >
 )
 
+get_target_property(_unity_includes unity INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(unity PROPERTIES
+INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_unity_includes}")
+
+set(CMAKE_INSTALL_DATADIR "${CMAKE_INSTALL_DATADIR}")
+
+include(CMakePackageConfigHelpers)
+get_filename_component(PACKAGE_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+
+configure_package_config_file(
+    cmake/unityConfig.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/unityConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unity
+)
+
 write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake
     VERSION       ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion 
 )
 
 ## Target installation
-install(TARGETS   ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME}
     EXPORT        ${PROJECT_NAME}Targets
-    ARCHIVE       DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE       DESTINATION ${CMAKE_INSTALL_LIBDIR}/$<CONFIG>
+    LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}/$<CONFIG>
+    RUNTIME       DESTINATION ${CMAKE_INSTALL_BINDIR}/$<CONFIG>
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
     COMPONENT     library
 )
@@ -179,4 +198,17 @@ install(EXPORT  ${PROJECT_NAME}Targets
 install(FILES   ${PROJECT_NAME}Config.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+install(
+DIRECTORY ${unity_SOURCE_DIR}/auto/
+DESTINATION ${CMAKE_INSTALL_DATADIR}/unity/auto
+)
+
+set(UNITY_AUTO_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/unity/auto")
+
+install(
+    FILES
+        cmake/AddUnityTest.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unity
 )

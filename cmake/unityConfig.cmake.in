@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+set_and_check(UNITY_AUTO_DIR "${PACKAGE_PREFIX_DIR}/share/unity/auto")
+include(${CMAKE_CURRENT_LIST_DIR}/unityTargets.cmake) 
+include("${CMAKE_CURRENT_LIST_DIR}/AddUnityTest.cmake")
